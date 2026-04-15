@@ -1,0 +1,103 @@
+{
+  "name": "WhatsApp Restaurant Bot (Simplified)",
+  "nodes": [
+    {
+      "id": "node-webhook",
+      "name": "Message Received",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "parameters": {
+        "path": "whatsapp-incoming",
+        "httpMethod": "POST",
+        "responseMode": "lastNode"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-set-text",
+      "name": "Extract Text",
+      "type": "n8n-nodes-base.set",
+      "position": [480, 300],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "value": "={{ $json.from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "node-claude-llm",
+      "name": "Claude LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "position": [700, 420],
+      "parameters": {
+        "model": "claude-3-5-sonnet-20241022",
+        "options": {}
+      },
+      "credentials": {
+        "anthropicApi": {
+          "id": "credential-id",
+          "name": "Anthropic API"
+        }
+      },
+      "typeVersion": 1.3
+    },
+    {
+      "id": "node-agent",
+      "name": "AI Restaurant Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [700, 300],
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "You are a friendly AI assistant for a restaurant. Help customers with menu questions and taking orders. Keep responses short and conversational. Ask for: what they want to order, delivery or pickup, and their name."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.9
+    },
+    {
+      "id": "node-send",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [950, 300],
+      "parameters": {
+        "url": "http://YOUR_LAPTOP_IP:5000/send",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('Extract Text').item.json.from }}\",\n  \"message\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    }
+  ],
+  "connections": {
+    "Message Received": {
+      "main": [[{ "node": "Extract Text", "type": "main", "index": 0 }]]
+    },
+    "Extract Text": {
+      "main": [[{ "node": "AI Restaurant Agent", "type": "main", "index": 0 }]]
+    },
+    "Claude LLM": {
+      "ai_languageModel": [[{ "node": "AI Restaurant Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "AI Restaurant Agent": {
+      "main": [[{ "node": "Send WhatsApp Reply", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

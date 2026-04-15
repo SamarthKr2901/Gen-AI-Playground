@@ -1,0 +1,32 @@
+--- SAMPLE APPLICATION 2 (Weak Candidate) ---
+
+Name: Rohan Singh
+Email: rohan.s@example.com
+Role Applied: AI Agent Development Intern
+Background: 1st year B.Com student.
+Skills: MS Excel, basic typing.
+Motivation: I want to learn new things and gain experience.
+
+--- EXPECTED AI OUTPUT ---
+
+{
+  "score": 2,
+  "strengths": "Shows willingness to learn and has basic computer skills.",
+  "gaps": "Applicant has no programming, AI, or technical background relevant to the AI Agent Intern role. Motivation statement is generic and does not demonstrate understanding of the role or organization.",
+  "recommendation": "Reject",
+  "one_line_summary": "No relevant technical skills for AI role; motivation too generic — recommend rejection."
+}
+
+--- AUTO-REPLY EMAIL ---
+
+Subject: Application Received — AI Agent Development Intern | Vriddhikar Society
+
+Dear Rohan,
+
+Thank you for your interest in the AI Agent Development Intern role at Vriddhikar
+Society. We have received your application and our team will review it shortly.
+
+Please expect to hear back from us within 5–7 business days.
+
+Warm regards,
+Team Vriddhikar Society

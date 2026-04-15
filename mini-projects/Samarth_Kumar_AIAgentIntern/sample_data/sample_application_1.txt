@@ -1,0 +1,35 @@
+--- SAMPLE APPLICATION 1 (Strong Candidate) ---
+
+Name: Priya Mehta
+Email: priya.mehta@example.com
+Role Applied: Social Media & Content Intern
+Background: Final year B.A. Mass Communication student at Delhi University.
+Skills: Content writing, Canva, Instagram management, basic video editing.
+Motivation: I am passionate about education and have volunteered with 2 NGOs
+previously. I want to use my communication skills to amplify Vriddhikar's mission
+and reach more students across India.
+
+--- EXPECTED AI OUTPUT ---
+
+{
+  "score": 9,
+  "strengths": "Priya has directly relevant skills in content creation, social media management, and graphic design using Canva. Her prior NGO volunteering demonstrates genuine commitment to social causes, and her motivation is clearly aligned with Vriddhikar's educational mission.",
+  "gaps": "No significant gaps identified. Could benefit from experience with analytics tools like Meta Business Suite.",
+  "recommendation": "Shortlist",
+  "one_line_summary": "Strong content intern candidate with NGO experience and clear mission alignment — recommend shortlisting."
+}
+
+--- AUTO-REPLY EMAIL ---
+
+Subject: Application Received — Social Media & Content Intern | Vriddhikar Society
+
+Dear Priya,
+
+Thank you for applying for the Social Media & Content Intern position at Vriddhikar
+Society! We have successfully received your application and our team will review it
+carefully.
+
+You can expect to hear back from us within 5–7 business days.
+
+Warm regards,
+Team Vriddhikar Society

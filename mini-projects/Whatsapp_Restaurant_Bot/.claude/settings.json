@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__n8n-oyelabs__n8n_list_workflows",
+      "mcp__n8n-oyelabs__n8n_get_workflow",
+      "Bash(python3 -c ':*)",
+      "Bash(python -c ':*)"
+    ]
+  }
+}
