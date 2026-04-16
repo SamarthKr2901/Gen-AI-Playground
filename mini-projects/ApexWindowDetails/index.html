@@ -146,12 +146,7 @@
 
   input.error { border-color: var(--error); }
 
-  .error-msg {
-    font-size: 12px;
-    color: var(--error);
-    margin-top: 4px;
-    display: none;
-  }
+  .error-msg { font-size: 12px; color: var(--error); margin-top: 4px; display: none; }
   .error-msg.show { display: block; }
 
   textarea { resize: vertical; min-height: 80px; }
@@ -316,9 +311,6 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const N8N_WEBHOOK = 'https://vmi3106842.contaboserver.net/webhook/window-details-submitted';
 const MAX_SIZE = 5 * 1024 * 1024;
 
-// Generate a unique session ID for this submission (used for photo storage path)
-const SESSION_ID = crypto.randomUUID();
-
 // Build window cards
 const container = document.getElementById('windowsContainer');
 for (let i = 1; i <= 10; i++) {
@@ -366,9 +358,9 @@ document.getElementById('issueType').addEventListener('change', function() {
   document.getElementById('otherDescGroup').style.display = this.value === 'Other' ? 'block' : 'none';
 });
 
-async function uploadPhoto(file, windowNum) {
+async function uploadPhoto(emailFolder, file, windowNum) {
   const filename = `w${windowNum}_${Date.now()}_${file.name.replace(/\s/g,'_')}`;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/window-photos/${SESSION_ID}/${filename}`, {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/window-photos/${emailFolder}/${filename}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SUPABASE_ANON}`,
@@ -378,7 +370,7 @@ async function uploadPhoto(file, windowNum) {
     body: file
   });
   if (!res.ok) throw new Error('Photo upload failed for window ' + windowNum);
-  return `${SUPABASE_URL}/storage/v1/object/public/window-photos/${SESSION_ID}/${filename}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/window-photos/${emailFolder}/${filename}`;
 }
 
 document.getElementById('windowForm').addEventListener('submit', async (e) => {
@@ -389,6 +381,9 @@ document.getElementById('windowForm').addEventListener('submit', async (e) => {
   document.getElementById('submitterEmail').classList.toggle('error', emailInvalid);
   document.getElementById('submitterEmailErr').classList.toggle('show', emailInvalid);
   if (emailInvalid) return;
+
+  // Sanitise email into a valid storage folder name (e.g. john@example.com → john_example_com)
+  const emailFolder = email.replace(/[^a-zA-Z0-9]/g, '_');
 
   const issueType = document.getElementById('issueType').value;
   if (!issueType) {
@@ -425,7 +420,7 @@ document.getElementById('windowForm').addEventListener('submit', async (e) => {
       const w = windows[i];
       progressFill.style.width = ((i / windows.length) * 70) + '%';
       let photoUrl = null;
-      if (w.photo) photoUrl = await uploadPhoto(w.photo, w.index);
+      if (w.photo) photoUrl = await uploadPhoto(emailFolder, w.photo, w.index);
       windowPayload.push({
         window_number: w.index,
         issue_type: issueType,
@@ -442,7 +437,6 @@ document.getElementById('windowForm').addEventListener('submit', async (e) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email,
-        session_id: SESSION_ID,
         windows: windowPayload
       })
     });
