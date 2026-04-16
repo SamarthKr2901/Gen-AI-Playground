@@ -322,18 +322,12 @@ document.getElementById('leadForm').addEventListener('submit', async (e) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
-
-    if (res.ok && data.lead_id) {
-      alertSuccess.textContent = '✅ Request received! Redirecting you to upload window details...';
+    if (res.ok) {
+      alertSuccess.textContent = '✅ Thank you! Your request has been received. We\'ll prepare your estimate within 1 business day.';
       alertSuccess.classList.add('show');
-      setTimeout(() => {
-        window.location.href = 'window-details.html?lead_id=' + data.lead_id;
-      }, 1500);
-    } else if (data.status === 'existing_lead') {
-      window.location.href = 'window-details.html?lead_id=' + data.lead_id;
+      document.getElementById('leadForm').style.display = 'none';
     } else {
-      throw new Error(data.error || 'Submission failed');
+      throw new Error('Submission failed. Please try again.');
     }
   } catch (err) {
     alertError.textContent = '❌ ' + (err.message || 'Something went wrong. Please try again.');
