@@ -682,7 +682,7 @@
   async function loadApprovals() {
     const tbody = document.getElementById('approval-list');
     try {
-      const rows = await sb('quotes?status=eq.pending_approval&select=id,lead_id,total_amount,created_at,leads(id,name,email,phone)&order=created_at.asc');
+      const rows = await sb('quotes?status=eq.pending_approval&select=id,lead_id,total_amount,created_at,leads(id,name,email,phone)&order=created_at.desc');
       const cnt  = document.getElementById('approval-count');
       cnt.textContent = rows.length;
       cnt.className   = 'badge-count' + (rows.length === 0 ? ' zero' : rows.length > 0 ? ' warn' : '');
@@ -791,7 +791,7 @@
   // ══════════════════════════════════════════
   async function loadActivity() {
     try {
-      const rows = await sb('leads?select=id,name,email,phone,pipeline_stage,created_at,quotes(id,total_amount,status)&order=created_at.desc&limit=50');
+      const rows = await sb('leads?select=id,name,email,phone,pipeline_stage,created_at,lead_temp,"Lead_score",quotes(id,total_amount,status)&order=created_at.desc&limit=50');
       state.allLeads = rows;
       renderFilterPills();
       renderActivity();
@@ -831,8 +831,13 @@
       const best    = quotes.find(q => q.status === 'accepted')
                    || quotes.find(q => q.status === 'pending_approval')
                    || quotes[0];
+      const tempColor = lead.lead_temp ? ({ hot:'var(--red)', warm:'var(--orange)', cold:'var(--blue)' }[lead.lead_temp.toLowerCase()] || 'var(--text-muted)') : null;
       return `<tr class="clickable" onclick="openDrawer('${escAttr(lead.id)}')">
-        <td><div class="lead-name">${esc(lead.name || 'Unknown')}</div></td>
+        <td>
+          <div class="lead-name">${esc(lead.name || 'Unknown')}</div>
+          ${lead.lead_temp ? `<div style="font-size:11px;color:${tempColor};font-weight:600">${esc(lead.lead_temp)}</div>` : ''}
+          ${lead['Lead_score'] ? `<div style="font-size:11px;color:var(--text-muted)">Score: ${esc(lead['Lead_score'])}</div>` : ''}
+        </td>
         <td>
           <div class="lead-sub">${esc(lead.email || '—')}</div>
           <div class="lead-sub">${esc(lead.phone || '')}</div>
@@ -875,7 +880,7 @@
       await loadActivity();
       updateKPIs();
     } catch(e) { /* individual functions handle their own errors */ }
-    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' IST';
   }
 
   // ══════════════════════════════════════════
@@ -906,6 +911,7 @@
               <div>
                 <div style="font-weight:600;font-size:13px">${fmt$(q.total_amount)}</div>
                 <div style="font-size:11px;color:var(--text-muted)">${q.id?.slice(0,12)}…</div>
+                ${q.approved_by ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">Marked by: <strong style="color:var(--text)">${esc(q.approved_by)}</strong></div>` : ''}
               </div>
               <div style="text-align:right">
                 ${stageBadge(q.status)}
@@ -936,6 +942,8 @@
             <div class="drawer-field"><label>Phone</label><span>${esc(lead.phone || '—')}</span></div>
             <div class="drawer-field"><label>Source</label><span>${esc(lead.source || '—')}</span></div>
             <div class="drawer-field"><label>Created</label><span>${fmtDate(lead.created_at).split(' ').slice(0,3).join(' ')}</span></div>
+            <div class="drawer-field"><label>Lead Temp</label><span>${esc(lead.lead_temp || '—')}</span></div>
+            <div class="drawer-field"><label>Lead Score</label><span>${esc(lead['Lead_score'] || '—')}</span></div>
             <div class="drawer-field" style="grid-column:1/-1"><label>Lead ID</label><span style="font-family:monospace;font-size:12px;color:var(--text-muted)">${esc(lead.id)}</span></div>
           </div>
         </div>
