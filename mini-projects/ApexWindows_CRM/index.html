@@ -242,10 +242,9 @@
       font-size: 11px; font-weight: 700; white-space: nowrap;
       letter-spacing: 0.3px;
     }
-    .temp-hot     { background: rgba(248,81,73,0.15);  color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
-    .temp-warm    { background: rgba(210,153,34,0.15); color: #d29922; border: 1px solid rgba(210,153,34,0.3); }
-    .temp-cold    { background: rgba(56,139,253,0.15); color: #388bfd; border: 1px solid rgba(56,139,253,0.3); }
-    .temp-unknown { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+    .temp-hot     { background: rgba(255,50,50,0.15);   color: #ff3232; border: 1px solid rgba(255,50,50,0.35); }
+    .temp-warm    { background: rgba(230,168,23,0.15);  color: #e6a817; border: 1px solid rgba(230,168,23,0.35); }
+    .temp-cold    { background: rgba(140,100,255,0.15); color: #9d7eff; border: 1px solid rgba(140,100,255,0.35); }
 
     .score-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
     .score-bar-track {
@@ -254,12 +253,12 @@
     }
     .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
     .score-num { font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .score-high .score-bar-fill { background: var(--green); }
-    .score-high .score-num      { color: var(--green); }
-    .score-mid  .score-bar-fill { background: var(--orange); }
-    .score-mid  .score-num      { color: var(--orange); }
-    .score-low  .score-bar-fill { background: var(--red); }
-    .score-low  .score-num      { color: var(--red); }
+    .score-high .score-bar-fill { background: #ff3232; }
+    .score-high .score-num      { color: #ff3232; }
+    .score-mid  .score-bar-fill { background: #e6a817; }
+    .score-mid  .score-num      { color: #e6a817; }
+    .score-low  .score-bar-fill { background: #9d7eff; }
+    .score-low  .score-num      { color: #9d7eff; }
     .intel-cell { min-width: 130px; }
 
     /* ── Priority / Qualification ────────────── */
@@ -561,11 +560,10 @@
             <th>Lead Temp</th>
             <th>Quote Amount</th>
             <th>Age</th>
-            <th>Lead ID</th>
           </tr>
         </thead>
         <tbody id="activity-list">
-          <tr class="loading-row"><td colspan="7"><span class="spinner"></span></td></tr>
+          <tr class="loading-row"><td colspan="6"><span class="spinner"></span></td></tr>
         </tbody>
       </table>
     </div>
@@ -702,9 +700,8 @@
     if (!temp) return '';
     const t = temp.toLowerCase().trim();
     if (!['hot','warm','cold'].includes(t)) return '';
-    const icon = t === 'hot' ? '🔥' : t === 'warm' ? '🌡' : '❄️';
-    const cls  = t === 'hot' ? 'temp-hot' : t === 'warm' ? 'temp-warm' : 'temp-cold';
-    return `<span class="temp-badge ${cls}">${icon} ${t.charAt(0).toUpperCase() + t.slice(1)}</span>`;
+    const cls = t === 'hot' ? 'temp-hot' : t === 'warm' ? 'temp-warm' : 'temp-cold';
+    return `<span class="temp-badge ${cls}">${t.charAt(0).toUpperCase() + t.slice(1)}</span>`;
   }
 
   function formatJobField(val) {
@@ -716,10 +713,17 @@
       .replace(/\bFull Replacement\b/g, 'Full Window Replacement');
   }
 
+  function formatText(val) {
+    if (!val || val === '') return '—';
+    return val
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
   function formatVoiceAgent(val) {
     if (!val || val === '') return '<span style="color:var(--text-muted)">Not contacted</span>';
-    if (val.toLowerCase() === 'call') return '📞 Phone Call';
-    if (val.toLowerCase() === 'sms')  return '💬 SMS';
+    if (val.toLowerCase() === 'call') return 'Phone Call';
+    if (val.toLowerCase() === 'sms')  return 'SMS';
     return esc(val);
   }
 
@@ -924,7 +928,7 @@
       renderActivity();
     } catch(e) {
       document.getElementById('activity-list').innerHTML =
-        `<tr class="empty-row"><td colspan="7" style="color:var(--red)">Error: ${esc(e.message)}</td></tr>`;
+        `<tr class="empty-row"><td colspan="6" style="color:var(--red)">Error: ${esc(e.message)}</td></tr>`;
     }
   }
 
@@ -950,7 +954,7 @@
     );
 
     if (!rows.length) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No leads match your filter</td></tr>`;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No leads match your filter</td></tr>`;
       return;
     }
     tbody.innerHTML = rows.map(lead => {
@@ -973,7 +977,6 @@
         </td>
         <td><span class="amount">${fmt$(best?.total_amount)}</span></td>
         <td>${ageBadge(lead.created_at)}</td>
-        <td><span class="id-pill" title="${esc(lead.id)}">${shortId(lead.id)}</span></td>
       </tr>`;
     }).join('');
   }
@@ -1076,11 +1079,6 @@
         </div>` : '<div class="drawer-empty">No invoice yet</div>';
 
       // ── AI Insights ──
-      const hasAiInsights = lead.recomonded_action || lead.customer_intent;
-      const aiInsightsHtml = hasAiInsights ? `
-        ${lead.customer_intent ? `<div class="drawer-field full" style="margin-bottom:10px"><label>Customer Intent</label><div class="remarks-box" style="margin-top:4px">${esc(lead.customer_intent)}</div></div>` : ''}
-        ${lead.recomonded_action ? `<div class="drawer-field full"><label>Recommended Action</label><div class="remarks-box" style="margin-top:4px">${esc(lead.recomonded_action)}</div></div>` : ''}
-      ` : '<div class="drawer-empty">No AI insights yet</div>';
 
       document.getElementById('drawer-body').innerHTML = `
 
@@ -1117,17 +1115,13 @@
                 : `<span style="color:var(--text-muted)">—</span>`}
             </div>
           </div>
-          <div class="drawer-grid-3">
+          <div class="drawer-grid-3" style="margin-bottom:12px">
             <div class="drawer-field"><label>Job Type</label><span>${lead.job_type ? formatJobField(lead.job_type) : '—'}</span></div>
             <div class="drawer-field"><label>Job Size</label><span>${lead['job size'] ? formatJobField(lead['job size']) : '—'}</span></div>
             <div class="drawer-field"><label>Contacted by AI Agent</label><span>${formatVoiceAgent(lead['Voice Agent'])}</span></div>
           </div>
-        </div>
-
-        <!-- AI Insights -->
-        <div class="drawer-section">
-          <div class="drawer-section-title">💡 AI Insights</div>
-          ${aiInsightsHtml}
+          ${lead.customer_intent ? `<div class="drawer-field full" style="margin-bottom:10px"><label>Customer Intent</label><div class="remarks-box" style="margin-top:4px">${esc(formatText(lead.customer_intent))}</div></div>` : ''}
+          ${lead.recomonded_action ? `<div class="drawer-field full"><label>Recommended Action</label><div class="remarks-box" style="margin-top:4px">${esc(formatText(lead.recomonded_action))}</div></div>` : ''}
         </div>
 
 
