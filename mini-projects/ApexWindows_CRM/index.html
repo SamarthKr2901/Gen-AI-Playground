@@ -558,7 +558,7 @@
             <th>Lead</th>
             <th>Contact</th>
             <th>Pipeline Stage</th>
-            <th>Lead Intel</th>
+            <th>Lead Temp</th>
             <th>Quote Amount</th>
             <th>Age</th>
             <th>Lead ID</th>
@@ -699,11 +699,28 @@
   }
 
   function tempBadge(temp) {
-    if (!temp) return `<span class="temp-badge temp-unknown">—</span>`;
-    const t = temp.toLowerCase();
-    const icon = t === 'hot' ? '🔥' : t === 'warm' ? '🌡' : t === 'cold' ? '❄️' : '◉';
-    const cls  = t === 'hot' ? 'temp-hot' : t === 'warm' ? 'temp-warm' : t === 'cold' ? 'temp-cold' : 'temp-unknown';
-    return `<span class="temp-badge ${cls}">${icon} ${esc(temp.toUpperCase())}</span>`;
+    if (!temp) return '';
+    const t = temp.toLowerCase().trim();
+    if (!['hot','warm','cold'].includes(t)) return '';
+    const icon = t === 'hot' ? '🔥' : t === 'warm' ? '🌡' : '❄️';
+    const cls  = t === 'hot' ? 'temp-hot' : t === 'warm' ? 'temp-warm' : 'temp-cold';
+    return `<span class="temp-badge ${cls}">${icon} ${t.charAt(0).toUpperCase() + t.slice(1)}</span>`;
+  }
+
+  function formatJobField(val) {
+    if (!val || val === '') return '—';
+    return val
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .replace(/\bIgu\b/g, 'IGU')
+      .replace(/\bFull Replacement\b/g, 'Full Window Replacement');
+  }
+
+  function formatVoiceAgent(val) {
+    if (!val || val === '') return '<span style="color:var(--text-muted)">Not contacted</span>';
+    if (val.toLowerCase() === 'call') return '📞 Phone Call';
+    if (val.toLowerCase() === 'sms')  return '💬 SMS';
+    return esc(val);
   }
 
   function scoreBar(score) {
@@ -1056,15 +1073,13 @@
           <div class="drawer-field"><label>Amount Paid</label><span style="font-weight:700;color:var(--green)">${fmt$(invoice.amount_paid)}</span></div>
           <div class="drawer-field"><label>Due Date</label><span>${df(invoice.due_date ? fmtDateShort(invoice.due_date) : null)}</span></div>
           <div class="drawer-field"><label>Sent At</label><span>${df(lead.invoice_sent_at ? fmtDateShort(lead.invoice_sent_at) : null)}</span></div>
-          ${invoice.stripe_payment_url ? `<div class="drawer-field full"><label>Payment Link</label><br><a class="pdf-btn" href="${esc(invoice.stripe_payment_url)}" target="_blank">💳 Open Stripe Payment Link</a></div>` : ''}
         </div>` : '<div class="drawer-empty">No invoice yet</div>';
 
       // ── AI Insights ──
-      const hasAiInsights = lead.voice_agent_notes || lead.recomonded_action || lead.customer_intent;
+      const hasAiInsights = lead.recomonded_action || lead.customer_intent;
       const aiInsightsHtml = hasAiInsights ? `
         ${lead.customer_intent ? `<div class="drawer-field full" style="margin-bottom:10px"><label>Customer Intent</label><div class="remarks-box" style="margin-top:4px">${esc(lead.customer_intent)}</div></div>` : ''}
-        ${lead.recomonded_action ? `<div class="drawer-field full" style="margin-bottom:10px"><label>Recommended Action</label><div class="remarks-box" style="margin-top:4px">${esc(lead.recomonded_action)}</div></div>` : ''}
-        ${lead.voice_agent_notes ? `<div class="drawer-field full"><label>Voice Agent Notes</label><div class="remarks-box" style="margin-top:4px">${esc(lead.voice_agent_notes)}</div></div>` : ''}
+        ${lead.recomonded_action ? `<div class="drawer-field full"><label>Recommended Action</label><div class="remarks-box" style="margin-top:4px">${esc(lead.recomonded_action)}</div></div>` : ''}
       ` : '<div class="drawer-empty">No AI insights yet</div>';
 
       document.getElementById('drawer-body').innerHTML = `
@@ -1076,7 +1091,7 @@
             <div class="drawer-field"><label>Email</label><span>${df(lead.email)}</span></div>
             <div class="drawer-field"><label>Phone</label><span>${df(lead.phone)}</span></div>
             <div class="drawer-field full"><label>Address</label><span>${df(lead.address)}</span></div>
-            <div class="drawer-field full"><label>Issue Description</label><span>${df(lead.issue_description)}</span></div>
+            <div class="drawer-field full"><label>Customer's Issue Description</label><span>${df(lead.issue_description)}</span></div>
             <div class="drawer-field"><label>Created</label><span>${fmtDateShort(lead.created_at)}</span></div>
             <div class="drawer-field"><label>Closed Won</label><span>${df(lead.closed_won_at ? fmtDateShort(lead.closed_won_at) : null)}</span></div>
             <div class="drawer-field full"><label>Lead ID</label><span style="font-family:monospace;font-size:12px;color:var(--text-muted)">${esc(lead.id)}</span></div>
@@ -1089,10 +1104,10 @@
           <div class="drawer-grid" style="margin-bottom:12px">
             <div class="drawer-field">
               <label>Lead Temperature</label>
-              <span>${tempBadge(lead.lead_temp)}</span>
+              <span>${tempBadge(lead.lead_temp) || '<span style="color:var(--text-muted)">—</span>'}</span>
             </div>
             <div class="drawer-field">
-              <label>Qualification Stage</label>
+              <label>Priority</label>
               <span>${qualBadge(lead.qualification_stage)}</span>
             </div>
             <div class="drawer-field full">
@@ -1103,9 +1118,9 @@
             </div>
           </div>
           <div class="drawer-grid-3">
-            <div class="drawer-field"><label>Job Type</label><span>${df(lead.job_type)}</span></div>
-            <div class="drawer-field"><label>Job Size</label><span>${df(lead['job size'])}</span></div>
-            <div class="drawer-field"><label>Voice Agent</label><span>${df(lead['Voice Agent'])}</span></div>
+            <div class="drawer-field"><label>Job Type</label><span>${lead.job_type ? formatJobField(lead.job_type) : '—'}</span></div>
+            <div class="drawer-field"><label>Job Size</label><span>${lead['job size'] ? formatJobField(lead['job size']) : '—'}</span></div>
+            <div class="drawer-field"><label>Contacted by AI Agent</label><span>${formatVoiceAgent(lead['Voice Agent'])}</span></div>
           </div>
         </div>
 
@@ -1115,18 +1130,6 @@
           ${aiInsightsHtml}
         </div>
 
-        <!-- Outreach Activity -->
-        <div class="drawer-section">
-          <div class="drawer-section-title">📞 Outreach Activity</div>
-          <div class="outreach-chips">
-            <span class="chip">Calls <span class="chip-val">${lead.call_attempts ?? lead['call attempt'] ?? '0'}</span></span>
-            <span class="chip">Last Call <span class="chip-val">${lead.last_call_at ? fmtDateShort(lead.last_call_at) : '—'}</span></span>
-            <span class="chip">SMS <span class="chip-val">${lead.sms_sent_at ? fmtDateShort(lead.sms_sent_at) : '—'}</span></span>
-            <span class="chip">Form Confirmed <span class="chip-val">${lead.form_confirmed ? '✓ Yes' : '—'}</span></span>
-            <span class="chip">Form Status <span class="chip-val">${lead.form_status || '—'}</span></span>
-            ${lead.human_transfer_requested ? `<span class="chip">Human Transfer <span class="chip-val">${esc(lead.human_transfer_requested)}</span></span>` : ''}
-          </div>
-        </div>
 
         ${lead.service_request_pdf_url ? `
         <!-- Service PDF -->
