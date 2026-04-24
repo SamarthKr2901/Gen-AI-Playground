@@ -266,9 +266,9 @@
       display: inline-block; padding: 2px 7px; border-radius: 4px;
       font-size: 11px; font-weight: 600; white-space: nowrap;
     }
-    .qual-high    { background: rgba(248,81,73,0.15);  color: #f85149; }
-    .qual-medium  { background: rgba(210,153,34,0.15); color: #d29922; }
-    .qual-low     { background: rgba(56,139,253,0.15); color: #388bfd; }
+    .qual-high    { background: rgba(35,134,54,0.15);   color: #3fb950; }
+    .qual-medium  { background: rgba(210,153,34,0.15);  color: #d29922; }
+    .qual-low     { background: rgba(248,81,73,0.15);   color: #f85149; }
     .qual-default { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
 
     /* ── Age badges ──────────────────────────── */
@@ -740,11 +740,15 @@
   function qualBadge(qual) {
     if (!qual) return `<span style="color:var(--text-muted);font-size:12px">—</span>`;
     const q = qual.toLowerCase();
-    const cls = q.includes('high') || q.includes('hot') ? 'qual-high'
-              : q.includes('med')  || q.includes('warm') ? 'qual-medium'
-              : q.includes('low')  || q.includes('cold') ? 'qual-low'
-              : 'qual-default';
-    return `<span class="qual-badge ${cls}">${esc(qual)}</span>`;
+    const cls   = q.includes('high') || q.includes('hot') ? 'qual-high'
+                : q.includes('med')  || q.includes('warm') ? 'qual-medium'
+                : q.includes('low')  || q.includes('cold') ? 'qual-low'
+                : 'qual-default';
+    const label = q.includes('high') || q.includes('hot') ? 'Qualified'
+                : q.includes('med')  || q.includes('warm') ? 'Needs Review'
+                : q.includes('low')  || q.includes('cold') ? 'Not Qualified'
+                : esc(qual);
+    return `<span class="qual-badge ${cls}">${label}</span>`;
   }
 
   function ageBadge(iso) {
@@ -1130,7 +1134,7 @@
               <span>${tempBadge(lead.lead_temp) || '<span style="color:var(--text-muted)">—</span>'}</span>
             </div>
             <div class="drawer-field">
-              <label>Priority</label>
+              <label>AI Qualification</label>
               <span>${qualBadge(lead.qualification_stage)}</span>
             </div>
             <div class="drawer-field full">
