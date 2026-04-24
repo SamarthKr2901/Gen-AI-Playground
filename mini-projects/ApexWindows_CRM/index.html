@@ -449,34 +449,28 @@
   <!-- KPI Bar -->
   <div class="kpi-bar">
     <div class="kpi-card kpi-blue">
-      <div class="kpi-label">Active Leads</div>
+      <div class="kpi-label">Total Leads</div>
       <div class="kpi-value" id="kpi-active">—</div>
-      <div class="kpi-sub">not yet completed</div>
     </div>
-    <div class="kpi-card kpi-red">
-      <div class="kpi-label">Hot Leads</div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Active Leads</div>
       <div class="kpi-value" id="kpi-hot">—</div>
-      <div class="kpi-sub">temp = hot</div>
     </div>
     <div class="kpi-card kpi-orange">
       <div class="kpi-label">Pending Approval</div>
       <div class="kpi-value" id="kpi-pending">—</div>
-      <div class="kpi-sub">quotes awaiting SM</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Pipeline Value</div>
       <div class="kpi-value" id="kpi-pipeline" style="font-size:20px">—</div>
-      <div class="kpi-sub">active quotes</div>
     </div>
     <div class="kpi-card kpi-blue">
       <div class="kpi-label">Scheduled Jobs</div>
       <div class="kpi-value" id="kpi-scheduled">—</div>
-      <div class="kpi-sub">ready to complete</div>
     </div>
     <div class="kpi-card kpi-teal">
-      <div class="kpi-label">Completed</div>
+      <div class="kpi-label">Closed Won</div>
       <div class="kpi-value" id="kpi-completed">—</div>
-      <div class="kpi-sub">all time</div>
     </div>
   </div>
 
@@ -794,17 +788,17 @@
     const leads  = state.allLeads;
     const quotes = state.allQuotes;
 
-    const active    = leads.filter(l => (l.pipeline_stage || '').toLowerCase() !== 'completed').length;
-    const hot       = leads.filter(l => (l.lead_temp || '').toLowerCase() === 'hot').length;
+    const total     = leads.length;
+    const active    = leads.filter(l => (l.pipeline_stage || '').toLowerCase() !== 'closed won').length;
     const pending   = quotes.filter(q => q.status === 'pending_approval').length;
     const pipeline  = quotes
-      .filter(q => ['pending_approval','accepted'].includes(q.status))
+      .filter(q => q.status === 'accepted')
       .reduce((sum, q) => sum + parseFloat(q.total_amount || 0), 0);
     const scheduled = leads.filter(l => COMPLETE_STAGES.includes(l.pipeline_stage)).length;
-    const completed = leads.filter(l => (l.pipeline_stage || '').toLowerCase() === 'completed').length;
+    const completed = leads.filter(l => (l.pipeline_stage || '').toLowerCase() === 'closed won').length;
 
-    document.getElementById('kpi-active').textContent    = active;
-    document.getElementById('kpi-hot').textContent       = hot;
+    document.getElementById('kpi-active').textContent    = total;
+    document.getElementById('kpi-hot').textContent       = active;
     document.getElementById('kpi-pending').textContent   = pending;
     document.getElementById('kpi-pipeline').textContent  = pipeline > 0 ? '$' + pipeline.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$0.00';
     document.getElementById('kpi-scheduled').textContent = scheduled;
