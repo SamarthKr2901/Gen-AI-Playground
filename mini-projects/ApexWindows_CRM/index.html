@@ -1023,11 +1023,13 @@
     document.getElementById('drawer-body').innerHTML = '<div style="padding:40px;text-align:center"><span class="spinner"></span></div>';
 
     try {
-      const [leadArr, quotes, estimates, invoices] = await Promise.all([
+      const [leadArr, quotes, estimates, invoices, windowPhotos, appointments] = await Promise.all([
         sb(`leads?id=eq.${leadId}&select=*&limit=1`),
         sb(`quotes?lead_id=eq.${leadId}&select=*&order=created_at.desc`),
         sb(`estimates?lead_id=eq.${leadId}&select=*&order=created_at.desc`).catch(() => []),
-        sb(`invoices?lead_id=eq.${leadId}&select=*&order=created_at.desc&limit=1`).catch(() => [])
+        sb(`invoices?lead_id=eq.${leadId}&select=*&order=created_at.desc&limit=1`).catch(() => []),
+        sb(`windows?lead_id=eq.${leadId}&photo_url=not.is.null&select=issue_type,notes,photo_url&order=created_at.asc`).catch(() => []),
+        sb(`appointments?lead_id=eq.${leadId}&select=service_type,appointment_date,appointment_time,status,booked_by,notes&order=appointment_date.asc`).catch(() => [])
       ]);
       const lead    = leadArr[0];
       const invoice = invoices[0] || null;
@@ -1078,7 +1080,31 @@
           <div class="drawer-field"><label>Sent At</label><span>${df(lead.invoice_sent_at ? fmtDateShort(lead.invoice_sent_at) : null)}</span></div>
         </div>` : '<div class="drawer-empty">No invoice yet</div>';
 
-      // ── AI Insights ──
+      // ── Window Photos HTML ──
+      const photosHtml = windowPhotos.length ? `
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin:12px 0 8px">Window Photos (${windowPhotos.length})</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          ${windowPhotos.map(w => `
+            <a href="${esc(w.photo_url)}" target="_blank" style="display:block;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);text-decoration:none">
+              <img src="${esc(w.photo_url)}" style="width:100%;height:80px;object-fit:cover;display:block" loading="lazy">
+              <div style="padding:4px 6px;font-size:11px;color:var(--text-muted);background:#fafbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc((w.issue_type||'').replace(/_/g,' '))}</div>
+            </a>`).join('')}
+        </div>` : '';
+
+      // ── Appointments HTML ──
+      const apptStatusColor = s => s==='completed'?'var(--green)':s==='cancelled'?'var(--red)':s==='confirmed'?'var(--blue)':'var(--orange)';
+      const apptTypeLabel   = t => t==='installation'?'🔧 Installation':t==='quote_review_call'?'📞 Quote Review Call':'📐 Estimate Visit';
+      const apptHtml = appointments.length
+        ? appointments.map((a, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0${i < appointments.length-1 ? ';border-bottom:1px solid var(--border)' : ''}">
+              <div>
+                <div style="font-size:13px;font-weight:600">${apptTypeLabel(a.service_type)}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${fmtDateShort(a.appointment_date)} · ${(a.appointment_time||'').slice(0,5)} · booked by ${(a.booked_by||'').replace('_',' ')}</div>
+                ${a.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;font-style:italic">${esc(a.notes)}</div>` : ''}
+              </div>
+              <span style="font-size:11px;font-weight:600;color:${apptStatusColor(a.status)};text-transform:capitalize;white-space:nowrap;margin-left:8px">${a.status}</span>
+            </div>`).join('')
+        : '<div class="drawer-empty">No appointments</div>';
 
       document.getElementById('drawer-body').innerHTML = `
 
@@ -1121,15 +1147,22 @@
             <div class="drawer-field"><label>Contacted by AI Agent</label><span>${formatVoiceAgent(lead['Voice Agent'])}</span></div>
           </div>
           ${lead.customer_intent ? `<div class="drawer-field full" style="margin-bottom:10px"><label>Customer Intent</label><div class="remarks-box" style="margin-top:4px">${esc(formatText(lead.customer_intent))}</div></div>` : ''}
-          ${lead.recomonded_action ? `<div class="drawer-field full"><label>Recommended Action</label><div class="remarks-box" style="margin-top:4px">${esc(formatText(lead.recomonded_action))}</div></div>` : ''}
+          ${lead.recomonded_action ? `<div class="drawer-field full"><label>AI Insight</label><div class="remarks-box" style="margin-top:4px">${esc(formatText(lead.recomonded_action))}</div></div>` : ''}
         </div>
 
 
-        ${lead.service_request_pdf_url ? `
-        <!-- Service PDF -->
+        <!-- Appointments -->
+        <div class="drawer-section">
+          <div class="drawer-section-title">📅 Appointments (${appointments.length})</div>
+          ${apptHtml}
+        </div>
+
+        ${(lead.service_request_pdf_url || windowPhotos.length) ? `
+        <!-- Documents -->
         <div class="drawer-section">
           <div class="drawer-section-title">📄 Documents</div>
-          <a class="pdf-btn" href="${esc(lead.service_request_pdf_url)}" target="_blank">📄 View Service Request PDF</a>
+          ${lead.service_request_pdf_url ? `<a class="pdf-btn" href="${esc(lead.service_request_pdf_url)}" target="_blank">📄 View Service Request PDF</a>` : ''}
+          ${photosHtml}
         </div>` : ''}
 
         <!-- Invoice -->
