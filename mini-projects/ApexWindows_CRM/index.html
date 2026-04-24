@@ -1057,8 +1057,8 @@
         ? estimates.map(e => `
             <div class="drawer-quote-row">
               <div>
-                <div style="font-weight:600;font-size:13px">${fmt$(e.adjusted_total || e.total_amount)}</div>
-                <div style="font-size:11px;color:var(--text-muted)">${e.manually_adjusted ? 'Adjusted' : 'Original'}: ${fmt$(e.total_amount)}</div>
+                <div style="font-weight:600;font-size:13px">${fmt$(e.adjusted_total || e.total)}</div>
+                <div style="font-size:11px;color:var(--text-muted)">${e.manually_adjusted ? 'Adjusted' : 'Original'}: ${fmt$(e.total)}</div>
               </div>
               <div style="text-align:right">
                 ${stageBadge(e.status)}
