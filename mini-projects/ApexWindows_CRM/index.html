@@ -791,9 +791,13 @@
     const total     = leads.length;
     const active    = leads.filter(l => (l.pipeline_stage || '').toLowerCase() !== 'closed won').length;
     const pending   = quotes.filter(q => q.status === 'pending_approval').length;
-    const pipeline  = quotes
-      .filter(q => q.status === 'accepted')
-      .reduce((sum, q) => sum + parseFloat(q.total_amount || 0), 0);
+    const PIPELINE_STAGES = ['quote accepted', 'completed', 'payment pending'];
+    const pipeline  = leads
+      .filter(l => PIPELINE_STAGES.includes((l.pipeline_stage || '').toLowerCase()))
+      .reduce((sum, l) => {
+        const q = (l.quotes || []).find(q => q.status === 'accepted');
+        return sum + parseFloat(q?.total_amount || 0);
+      }, 0);
     const scheduled = leads.filter(l => COMPLETE_STAGES.includes(l.pipeline_stage)).length;
     const completed = leads.filter(l => (l.pipeline_stage || '').toLowerCase() === 'closed won').length;
 
