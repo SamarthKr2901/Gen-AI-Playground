@@ -1093,12 +1093,11 @@
 
       // ── Appointments HTML ──
       const apptStatusColor = s => s==='completed'?'var(--green)':s==='cancelled'?'var(--red)':s==='confirmed'?'var(--blue)':'var(--orange)';
-      const apptTypeLabel   = t => t==='installation'?'🔧 Installation':t==='quote_review_call'?'📞 Quote Review Call':'📐 Estimate Visit';
       const apptHtml = appointments.length
         ? appointments.map((a, i) => `
             <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0${i < appointments.length-1 ? ';border-bottom:1px solid var(--border)' : ''}">
               <div>
-                <div style="font-size:13px;font-weight:600">${apptTypeLabel(a.service_type)}</div>
+                <div style="font-size:13px;font-weight:600">📅 Appointment</div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${fmtDateShort(a.appointment_date)} · ${(a.appointment_time||'').slice(0,5)} · booked by ${(a.booked_by||'').replace('_',' ')}</div>
                 ${a.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;font-style:italic">${esc(a.notes)}</div>` : ''}
               </div>
