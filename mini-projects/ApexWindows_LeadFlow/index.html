@@ -93,9 +93,36 @@
   .form-desc {
     font-size: 14px;
     color: var(--muted);
-    margin-bottom: 28px;
+    margin-bottom: 14px;
     line-height: 1.6;
   }
+
+  .call-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--blue-light);
+    border: 1.5px solid rgba(21,101,192,0.18);
+    border-radius: 10px;
+    padding: 11px 16px;
+    margin-bottom: 24px;
+  }
+
+  .call-cta span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .call-cta a {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .call-cta a:hover { text-decoration: underline; }
 
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
@@ -216,6 +243,12 @@
   <div class="card-body">
     <h2 class="form-title">Get a Free Quote</h2>
     <p class="form-desc">Tell us about your window issue and we'll prepare a personalised estimate within 1 business day.</p>
+
+    <div class="call-cta">
+      <span>📞 Prefer to talk?</span>
+      <a href="tel:+15075411956">+1 (507) 541-1956</a>
+      <span>— call us to get a quote</span>
+    </div>
 
     <div class="alert error" id="alertError"></div>
     <div class="alert success" id="alertSuccess"></div>
